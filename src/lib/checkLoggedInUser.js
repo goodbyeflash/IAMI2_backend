@@ -1,5 +1,5 @@
 const checkLoggedInUser = (ctx, next) => {
-  if (!ctx.state.user) {
+  if (!ctx.state.user && process.env.NODE_ENV != 'development') {
     ctx.status = 401; // Unauthorized
     return;
   }

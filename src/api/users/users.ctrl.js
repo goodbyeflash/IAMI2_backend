@@ -40,7 +40,7 @@ export const list = async (ctx) => {
 
   try {
     const users = await User.find({})
-      .sort({ _id: -1 })
+      .sort({ id: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
@@ -138,7 +138,7 @@ export const find = async (ctx) => {
 
   try {
     const users = await User.find(body)
-      .sort({ _id: -1 })
+      .sort({ id: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();

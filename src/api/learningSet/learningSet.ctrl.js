@@ -16,13 +16,13 @@ export const list = async (ctx) => {
 
   try {
     const learningSets = await LearningSet.find({})
-      .sort({ _id: -1 })
+      .sort({ learningNo: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
-    const userCount = await LearningSet.countDocuments({}).exec();
-    ctx.set('Last-Page', Math.ceil(userCount / 10));
-    ctx.body = learningSets.map((user) => user.toJSON());
+    const learningSetCount = await LearningSet.countDocuments({}).exec();
+    ctx.set('Last-Page', Math.ceil(learningSetCount / 10));
+    ctx.body = learningSets.map((learningSet) => learningSet.toJSON());
   } catch (error) {
     ctx.throw(500, error);
   }
@@ -34,20 +34,7 @@ export const list = async (ctx) => {
     "learningNo" : "1",
     "videoName" : "비디오이름",
     "videoUrl" : "비디오링크",
-    "quizData" : [
-      {
-        "text" : "1번 문제 입니다.",
-        "qestion" : "1+1=?",
-        "answer" : "2",
-        "time" : 30
-      },
-      {
-        "text" : "2번 문제 입니다.",
-        "qestion" : "1+2=?",
-        "answer" : "3",
-        "time" : 30
-      }
-    ],
+    "quizNo" : ["1","2","3"],
     "publishedDate" : new Date()
   }
  */
@@ -57,7 +44,7 @@ export const register = async (ctx) => {
     learningNo: Joi.string().required(), // required()가 있으면 필수 항목
     videoName: Joi.string().required(),
     videoUrl: Joi.string().required(),
-    quizData: Joi.array().required(),
+    quizNo: Joi.array().required(),
     publishedDate: Joi.date().required(),
   });
 
@@ -68,7 +55,7 @@ export const register = async (ctx) => {
     ctx.body = result.error;
     return;
   }
-  const { learningNo, videoName, videoUrl, quizData, publishedDate } =
+  const { learningNo, videoName, videoUrl, quizNo, publishedDate } =
     ctx.request.body;
 
   try {
@@ -85,7 +72,7 @@ export const register = async (ctx) => {
       learningNo,
       videoName,
       videoUrl,
-      quizData,
+      quizNo,
       publishedDate,
     });
 
@@ -102,20 +89,7 @@ export const register = async (ctx) => {
     "learningNo" : "1",
     "videoName" : "비디오이름",
     "videoUrl" : "비디오링크",
-    "quizData" : [
-      {
-        "text" : "1번 문제 입니다.",
-        "qestion" : "1+1=?",
-        "answer" : "2",
-        "time" : 30
-      },
-      {
-        "text" : "2번 문제 입니다.",
-        "qestion" : "1+2=?",
-        "answer" : "3",
-        "time" : 30
-      }
-    ],
+    "quizNo" : ["1","2"],
     "publishedDate" : new Date(),
   }
 */
@@ -126,7 +100,7 @@ export const update = async (ctx) => {
     learningNo: Joi.string().required(),
     videoName: Joi.string(),
     videoUrl: Joi.string(),
-    quizData: Joi.array(),
+    quizNo: Joi.array(),
     publishedDate: Joi.date(),
   });
 
@@ -156,37 +130,68 @@ export const update = async (ctx) => {
 };
 
 /*
-  POST /api/learningSet/find
+  POST /api/learningSet/find?page=
   {
-    "filter" : {
-      "learningNo" : "1"
-    }
+    "learningNo" : "1"
   }
 */
 export const find = async (ctx) => {
   const body = ctx.request.body || {};
+  if (Object.keys(body).length > 0) {
+    const key = Object.keys(body)[0];
+    body[key] = { $regex: '.*' + body[key] + '.*' };
+  }
+  const page = parseInt(ctx.query.page || '1', 10);
 
-  const findData = {};
-
-  // if (body.dateGte && body.dateLt) {
-  //   findData['publishedDate'] = {
-  //     $gte: moment(body.dateGte).startOf('day').format(),
-  //     $lt: moment(body.dateLt).endOf('day').format(),
-  //   };
-  // }
+  if (page < 1) {
+    ctx.status = 400;
+    return;
+  }
 
   try {
-    let learningSet;
-    if (body.filter) {
-      const key = Object.keys(body.filter)[0];
-      learningSet = await LearningSet.find(findData)
-        .where(key)
-        .equals(body.filter[key])
-        .exec();
+    const learningSets = await LearningSet.find(body)
+      .sort({ learningNo: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .exec();
+    const learningSetCount = await LearningSet.countDocuments(body).exec();
+    ctx.set('Last-Page', Math.ceil(learningSetCount / 10));
+    ctx.body = learningSets.map((learningSet) => learningSet.toJSON());
+  } catch (error) {
+    ctx.throw(500, error);
+  }
+};
+
+/*
+  POST /api/learningSet/select
+  {
+    "learningNo" : "2"
+  }
+*/
+export const select = async (ctx) => {
+  const schema = Joi.object().keys({
+    // 객체가 다음 필드를 가지고 있음을 검증
+    learningNo: Joi.string().required(), // required()가 있으면 필수 항목
+  });
+
+  // 검증하고 나서 검증 실패인 경우 에러 처리
+  const result = schema.validate(ctx.request.body);
+  if (result.error) {
+    ctx.status = 400; // Bad Request
+    ctx.body = result.error;
+    return;
+  }
+  const { learningNo } = ctx.request.body;
+
+  try {
+    const exists = await LearningSet.findOne()
+      .where('learningNo')
+      .equals(learningNo);
+    if (exists) {
+      ctx.body = exists;
     } else {
-      learningSet = await LearningSet.find(findData).exec();
+      ctx.status = 404;
     }
-    ctx.body = learningSet;
   } catch (error) {
     ctx.throw(500, error);
   }

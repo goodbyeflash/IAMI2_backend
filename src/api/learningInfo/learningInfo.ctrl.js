@@ -16,13 +16,13 @@ export const list = async (ctx) => {
 
   try {
     const learningInfos = await LearningInfo.find({})
-      .sort({ _id: -1 })
+      .sort({ learningDate: -1, userId: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
-    const userCount = await LearningInfo.countDocuments({}).exec();
-    ctx.set('Last-Page', Math.ceil(userCount / 10));
-    ctx.body = learningInfos.map((user) => user.toJSON());
+    const learningInfoCount = await LearningInfo.countDocuments({}).exec();
+    ctx.set('Last-Page', Math.ceil(learningInfoCount / 10));
+    ctx.body = learningInfos.map((learningInfo) => learningInfo.toJSON());
   } catch (error) {
     ctx.throw(500, error);
   }
@@ -32,11 +32,20 @@ export const list = async (ctx) => {
   POST /api/learningInfo/register
   {
     "userId" : "test1",
-    "learningDate" : "2022-11-30",
+    "learningDate" : "2022-12-04",
     "learningTime" : "10:30~23:59",
     "teacherImgUrl" : "../image/teacher/1.png",
     "learningText" : "학습내용",
-    "learningNo" : "1,2",
+    "learningData" : [
+      {
+        "learningNo" : "1",
+        "complete" : "N"
+      },
+      {
+        "learningNo" : "2",
+        "complete" : "N"
+      }
+    ],
     "publishedDate" : new Date()
   }
  */
@@ -48,7 +57,7 @@ export const register = async (ctx) => {
     learningTime: Joi.string().required(),
     teacherImgUrl: Joi.string().required(),
     learningText: Joi.string().required(),
-    learningNo: Joi.string().required(),
+    learningData: Joi.array().required(),
     publishedDate: Joi.date().required(),
   });
 
@@ -65,7 +74,7 @@ export const register = async (ctx) => {
     userId,
     teacherImgUrl,
     learningText,
-    learningNo,
+    learningData,
     publishedDate,
   } = ctx.request.body;
 
@@ -76,7 +85,7 @@ export const register = async (ctx) => {
       userId,
       teacherImgUrl,
       learningText,
-      learningNo,
+      learningData,
       publishedDate,
     });
 
@@ -90,12 +99,19 @@ export const register = async (ctx) => {
 /*
   PATCH /api/learningInfo/:_id
   {
-    "userId" : "test1",
-    "learningDate" : "2022-11-30",
     "learningTime" : "10:30~23:59",
     "teacherImgUrl" : "../image/teacher/1.png",
     "learningText" : "학습내용",
-    "learningNo" : "1,2",
+    "learningData": [
+        {
+            "learningNo": "1",
+            "complete": "Y"
+        },
+        {
+            "learningNo": "2",
+            "complete": "N"
+        }
+    ],
     "publishedDate" : new Date()
   }
 */
@@ -103,12 +119,10 @@ export const update = async (ctx) => {
   const { _id } = ctx.params;
 
   const schema = Joi.object().keys({
-    userId: Joi.string().required(),
-    learningDate: Joi.string().required(),
     learningTime: Joi.string(),
     teacherImgUrl: Joi.string(),
     learningText: Joi.string(),
-    learningNo: Joi.string(),
+    learningData: Joi.array(),
     publishedDate: Joi.date(),
   });
 
@@ -138,45 +152,78 @@ export const update = async (ctx) => {
 };
 
 /*
-  POST /api/learningInfo/find
+  POST /api/learningInfo/find?page=
   {
-    "filter" : {
-      "learningDate" : "2022-11-30",
-    }
+    "learningDate" : "2022-12-02"
   }
 */
 export const find = async (ctx) => {
   const body = ctx.request.body || {};
+  if (Object.keys(body).length > 0) {
+    const key = Object.keys(body)[0];
+    body[key] = { $regex: '.*' + body[key] + '.*' };
+  }
+  const page = parseInt(ctx.query.page || '1', 10);
 
+  if (page < 1) {
+    ctx.status = 400;
+    return;
+  }
+
+  try {
+    const learningInfos = await LearningInfo.find(body)
+      .sort({ learningDate: -1, userId: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .exec();
+    const learningInfoCount = await LearningInfo.countDocuments(body).exec();
+    ctx.set('Last-Page', Math.ceil(learningInfoCount / 10));
+    ctx.body = learningInfos.map((learningInfo) => learningInfo.toJSON());
+  } catch (error) {
+    ctx.throw(500, error);
+  }
+};
+
+/*
+  POST /api/learningInfo/today
+  {
+    "learningDate" : "2022-11-30",
+    "userId" : "test1"
+  }
+*/
+export const today = async (ctx) => {
+  const body = ctx.request.body || {};
   const findData = {};
 
-  // if (body.dateGte && body.dateLt) {
-  //   findData['publishedDate'] = {
-  //     $gte: moment(body.dateGte).startOf('day').format(),
-  //     $lt: moment(body.dateLt).endOf('day').format(),
-  //   };
-  // }
+  const schema = Joi.object().keys({
+    learningDate: Joi.string().required(),
+    userId: Joi.string().required(),
+  });
+
+  // 검증하고 나서 검증 실패인 경우 에러 처리
+  const result = schema.validate(ctx.request.body);
+  if (result.error) {
+    ctx.status = 400; // Bad Request
+    ctx.body = result.error;
+    return;
+  }
 
   try {
     let learningInfo;
-    if (body.filter) {
-      const key = Object.keys(body.filter)[0];
-      learningInfo = await LearningInfo.find(findData)
-        .where(key)
-        .equals(body.filter[key])
-        .exec();
+    findData['$and'] = [
+      {
+        learningDate: body.learningDate,
+      },
+      {
+        userId: body.userId,
+      },
+    ];
+    learningInfo = await LearningInfo.findOne(findData).exec();
+    if (learningInfo == null) {
+      ctx.status = 404;
     } else {
-      findData['$and'] = [
-        {
-          learningDate: body.learningDate,
-        },
-        {
-          userId: body.userId,
-        },
-      ];
-      learningInfo = await LearningInfo.find(findData).exec();
+      ctx.body = learningInfo;
     }
-    ctx.body = learningInfo;
   } catch (error) {
     ctx.throw(500, error);
   }

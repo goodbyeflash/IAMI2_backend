@@ -4,7 +4,7 @@ const learningSetchema = new Schema({
   learningNo: String,
   videoName: String,
   videoUrl: String,
-  quizData: Array,
+  quizNo: Array,
   publishedDate: Date,
 });
 

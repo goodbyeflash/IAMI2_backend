@@ -1,5 +1,4 @@
 import Memo from '../../models/memo';
-import User from '../../models/user';
 import Joi from '@hapi/joi';
 
 /*
@@ -21,9 +20,9 @@ export const list = async (ctx) => {
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
-    const userCount = await Memo.countDocuments({}).exec();
-    ctx.set('Last-Page', Math.ceil(userCount / 10));
-    ctx.body = memos.map((user) => user.toJSON());
+    const memoCount = await Memo.countDocuments({}).exec();
+    ctx.set('Last-Page', Math.ceil(memoCount / 10));
+    ctx.body = memos.map((memo) => memo.toJSON());
   } catch (error) {
     ctx.throw(500, error);
   }
@@ -41,6 +40,7 @@ export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
     userId: Joi.string().required(), // required()가 있으면 필수 항목
+    name: Joi.string().required(), // required()가 있으면 필수 항목
     text: Joi.string().required(),
     publishedDate: Joi.date().required(),
   });
@@ -52,11 +52,12 @@ export const register = async (ctx) => {
     ctx.body = result.error;
     return;
   }
-  const { userId, text, publishedDate } = ctx.request.body;
+  const { userId, name, text, publishedDate } = ctx.request.body;
 
   try {
     const memo = new Memo({
       userId,
+      name,
       text,
       publishedDate,
     });
@@ -69,37 +70,33 @@ export const register = async (ctx) => {
 };
 
 /*
-  POST /api/memo/find
+  POST /api/memo/find?page=
   {
-    "filter" : {
-      "learningDate" : "2022-11-30",
-    }
+    "userId" : "test2"
   }
 */
 export const find = async (ctx) => {
   const body = ctx.request.body || {};
+  if (Object.keys(body).length > 0) {
+    const key = Object.keys(body)[0];
+    body[key] = { $regex: '.*' + body[key] + '.*' };
+  }
+  const page = parseInt(ctx.query.page || '1', 10);
 
-  const findData = {};
-
-  // if (body.dateGte && body.dateLt) {
-  //   findData['publishedDate'] = {
-  //     $gte: moment(body.dateGte).startOf('day').format(),
-  //     $lt: moment(body.dateLt).endOf('day').format(),
-  //   };
-  // }
+  if (page < 1) {
+    ctx.status = 400;
+    return;
+  }
 
   try {
-    let memo;
-    if (body.filter) {
-      const key = Object.keys(body.filter)[0];
-      memo = await Memo.find(findData)
-        .where(key)
-        .equals(body.filter[key])
-        .exec();
-    } else {
-      memo = await Memo.find(findData).exec();
-    }
-    ctx.body = memo;
+    const memos = await Memo.find(body)
+      .sort({ _id: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .exec();
+    const userCount = await Memo.countDocuments(body).exec();
+    ctx.set('Last-Page', Math.ceil(userCount / 10));
+    ctx.body = memos.map((memo) => memo.toJSON());
   } catch (error) {
     ctx.throw(500, error);
   }

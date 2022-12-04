@@ -18,14 +18,14 @@ export const list = async (ctx) => {
   }
 
   try {
-    const users = await LearningResult.find({})
-      .sort({ _id: -1 })
+    const learningResults = await LearningResult.find({})
+      .sort({ publishedDate: -1, userId: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
-    const userCount = await LearningResult.countDocuments({}).exec();
-    ctx.set('Last-Page', Math.ceil(userCount / 10));
-    ctx.body = users.map((user) => user.toJSON());
+    const learningResultCount = await LearningResult.countDocuments({}).exec();
+    ctx.set('Last-Page', Math.ceil(learningResultCount / 10));
+    ctx.body = learningResults.map((learningResult) => learningResult.toJSON());
   } catch (error) {
     ctx.throw(500, error);
   }
@@ -123,37 +123,33 @@ export const register = async (ctx) => {
 };
 
 /*
-  POST /api/learningResult/find
+  POST /api/learningResult/find?page=
   {
-    "filter" : {
-      "learningDate" : "2022-11-30",
-    }
+    "name" : "김"
   }
 */
 export const find = async (ctx) => {
   const body = ctx.request.body || {};
+  if (Object.keys(body).length > 0) {
+    const key = Object.keys(body)[0];
+    body[key] = { $regex: '.*' + body[key] + '.*' };
+  }
+  const page = parseInt(ctx.query.page || '1', 10);
 
-  const findData = {};
-
-  if (body.dateGte && body.dateLt) {
-    findData['publishedDate'] = {
-      $gte: moment(body.dateGte).startOf('day').format(),
-      $lt: moment(body.dateLt).endOf('day').format(),
-    };
+  if (page < 1) {
+    ctx.status = 400;
+    return;
   }
 
   try {
-    let learningResult;
-    if (body.filter) {
-      const key = Object.keys(body.filter)[0];
-      learningResult = await LearningResult.find(findData)
-        .where(key)
-        .equals(body.filter[key])
-        .exec();
-    } else {
-      learningResult = await LearningResult.find(findData).exec();
-    }
-    ctx.body = learningResult;
+    const learningResults = await LearningResult.find(body)
+      .sort({ publishedDate: -1, userId: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .exec();
+    const learningSetCount = await LearningResult.countDocuments(body).exec();
+    ctx.set('Last-Page', Math.ceil(learningSetCount / 10));
+    ctx.body = learningResults.map((learningResult) => learningResult.toJSON());
   } catch (error) {
     ctx.throw(500, error);
   }

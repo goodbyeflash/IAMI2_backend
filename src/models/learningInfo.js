@@ -6,7 +6,7 @@ const learningInfoSchema = new Schema({
   userId: String,
   teacherImgUrl: String,
   learningText: String,
-  learningNo: String,
+  learningData: Array,
   publishedDate: Date,
 });
 

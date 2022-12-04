@@ -2,6 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 
 const memoSchema = new Schema({
   userId: String,
+  name: String,
   text: String,
   publishedDate: Date,
 });
