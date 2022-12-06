@@ -5,21 +5,23 @@ import requsetIp from 'request-ip';
 
 const { ObjectId } = mongoose.Types;
 
-export const getUserById = async (ctx, next) => {
-  const { id } = ctx.params;
-  if (!ObjectId.isValid(id)) {
+/*
+  GET /api/users/_id
+*/
+export const read = async (ctx) => {
+  const { _id } = ctx.params;
+  if (!ObjectId.isValid(_id)) {
     ctx.status = 400; // Bad Request
     return;
   }
   try {
-    const user = await User.findById(id);
+    const user = await User.findById(_id);
     // 유저가 존재하지 않을 때
     if (!user) {
       ctx.status = 404; // Not Found
       return;
     }
-    ctx.state.user = user;
-    return next();
+    ctx.body = user;
   } catch (e) {
     ctx.throw(500, e);
   }
