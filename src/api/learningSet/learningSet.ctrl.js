@@ -1,5 +1,8 @@
 import LearningSet from '../../models/learningSet';
+import mongoose from 'mongoose';
 import Joi from '@hapi/joi';
+
+const { ObjectId } = mongoose.Types;
 
 /*
   GET /api/learningSet?page=
@@ -25,6 +28,28 @@ export const list = async (ctx) => {
     ctx.body = learningSets.map((learningSet) => learningSet.toJSON());
   } catch (error) {
     ctx.throw(500, error);
+  }
+};
+
+/*
+  GET /api/learningSet/_id
+*/
+export const read = async (ctx) => {
+  const { _id } = ctx.params;
+  if (!ObjectId.isValid(_id)) {
+    ctx.status = 400; // Bad Request
+    return;
+  }
+  try {
+    const learningSet = await LearningSet.findById(_id);
+    // 학습세트가 존재하지 않을 때
+    if (!learningSet) {
+      ctx.status = 404; // Not Found
+      return;
+    }
+    ctx.body = learningSet;
+  } catch (e) {
+    ctx.throw(500, e);
   }
 };
 
