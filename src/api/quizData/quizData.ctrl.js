@@ -1,5 +1,8 @@
 import QuizData from '../../models/quizData';
+import mongoose from 'mongoose';
 import Joi from '@hapi/joi';
+
+const { ObjectId } = mongoose.Types;
 
 /*
   GET /api/quizData?page=
@@ -25,6 +28,28 @@ export const list = async (ctx) => {
     ctx.body = quizDatas.map((quizData) => quizData.toJSON());
   } catch (error) {
     ctx.throw(500, error);
+  }
+};
+
+/*
+  GET /api/quizData/_id
+*/
+export const read = async (ctx) => {
+  const { _id } = ctx.params;
+  if (!ObjectId.isValid(_id)) {
+    ctx.status = 400; // Bad Request
+    return;
+  }
+  try {
+    const quizData = await QuizData.findById(_id);
+    // 학습세트가 존재하지 않을 때
+    if (!quizData) {
+      ctx.status = 404; // Not Found
+      return;
+    }
+    ctx.body = quizData;
+  } catch (e) {
+    ctx.throw(500, e);
   }
 };
 
@@ -63,7 +88,7 @@ export const register = async (ctx) => {
   try {
     const exists = await QuizData.find().where('quizNo').equals(quizNo);
     // quizData가 존재하면 중복 처리
-    if (exists) {
+    if (exists.length > 0) {
       ctx.status = 409;
       return;
     }
@@ -85,30 +110,33 @@ export const register = async (ctx) => {
 };
 
 /*
-  POST /api/quizData/find
+  POST /api/quizData/find?page=
   {
-    "filter" : {
-      "quizNo" : "1",
-    }
+    "quizNo" : "2"
   }
 */
 export const find = async (ctx) => {
   const body = ctx.request.body || {};
+  if (Object.keys(body).length > 0) {
+    const key = Object.keys(body)[0];
+    body[key] = { $regex: '.*' + body[key] + '.*' };
+  }
+  const page = parseInt(ctx.query.page || '1', 10);
 
-  const findData = {};
+  if (page < 1) {
+    ctx.status = 400;
+    return;
+  }
 
   try {
-    let quizData;
-    if (body.filter) {
-      const key = Object.keys(body.filter)[0];
-      quizData = await QuizData.find(findData)
-        .where(key)
-        .equals(body.filter[key])
-        .exec();
-    } else {
-      quizData = await QuizData.find(findData).exec();
-    }
-    ctx.body = quizData;
+    const quizDatas = await QuizData.find(body)
+      .sort({ quizNo: -1 })
+      .limit(10)
+      .skip((page - 1) * 10)
+      .exec();
+    const quizDataCount = await QuizData.countDocuments(body).exec();
+    ctx.set('Last-Page', Math.ceil(quizDataCount / 10));
+    ctx.body = quizDatas.map((quizData) => quizData.toJSON());
   } catch (error) {
     ctx.throw(500, error);
   }

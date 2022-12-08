@@ -1,5 +1,8 @@
 import LearningInfo from '../../models/learningInfo';
+import mongoose from 'mongoose';
 import Joi from '@hapi/joi';
+
+const { ObjectId } = mongoose.Types;
 
 /*
   GET /api/LearningInfo?page=
@@ -25,6 +28,28 @@ export const list = async (ctx) => {
     ctx.body = learningInfos.map((learningInfo) => learningInfo.toJSON());
   } catch (error) {
     ctx.throw(500, error);
+  }
+};
+
+/*
+  GET /api/learningInfo/_id
+*/
+export const read = async (ctx) => {
+  const { _id } = ctx.params;
+  if (!ObjectId.isValid(_id)) {
+    ctx.status = 400; // Bad Request
+    return;
+  }
+  try {
+    const learningInfo = await LearningInfo.findById(_id);
+    // 학습정보가 존재하지 않을 때
+    if (!learningInfo) {
+      ctx.status = 404; // Not Found
+      return;
+    }
+    ctx.body = learningInfo;
+  } catch (e) {
+    ctx.throw(500, e);
   }
 };
 
@@ -119,10 +144,12 @@ export const update = async (ctx) => {
   const { _id } = ctx.params;
 
   const schema = Joi.object().keys({
-    learningTime: Joi.string(),
+    learningDate: Joi.string().required(),
+    userId: Joi.string().required(),
+    learningTime: Joi.string().required(),
     teacherImgUrl: Joi.string(),
     learningText: Joi.string(),
-    learningData: Joi.array(),
+    learningData: Joi.array().required(),
     publishedDate: Joi.date(),
   });
 

@@ -6,6 +6,7 @@ import checkLoggedInUser from '../../lib/checkLoggedInUser';
 const learningInfo = new Router();
 
 learningInfo.get('/', checkLoggedIn, learningInfoCtrl.list);
+learningInfo.get('/:_id', checkLoggedIn, learningInfoCtrl.read);
 learningInfo.post('/register', checkLoggedIn, learningInfoCtrl.register);
 learningInfo.post('/find', checkLoggedIn, learningInfoCtrl.find);
 learningInfo.post('/today', checkLoggedInUser, learningInfoCtrl.today);
