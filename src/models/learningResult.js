@@ -9,9 +9,10 @@ const learningResultSchema = new Schema({
   quizAvgRunTime: Number,
   quizIncorrectNumber: String,
   quizTotalScore: Number,
+  publishedDate: Date,
   replayAvg: Number,
   replayAvgRunTime: Number,
-  publishedDate: Date,
+  replayPublishedDate: Date,
 });
 
 const LearningResult = mongoose.model('LearningResult', learningResultSchema);

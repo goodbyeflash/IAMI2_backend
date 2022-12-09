@@ -42,8 +42,6 @@ export const list = async (ctx) => {
     "quizAvgRunTime" : 78,
     "quizIncorrectNumber" : "2,4,7,10,15",
     "quizTotalScore" : 2340,
-    "replayAvg" : 30,
-    "replayAvgRunTime" : 30,
     "publishedDate" : new Date()
   }
  */
@@ -58,8 +56,6 @@ export const register = async (ctx) => {
     quizAvgRunTime: Joi.number().required(),
     quizIncorrectNumber: Joi.string().required(),
     quizTotalScore: Joi.number().required(),
-    replayAvg: Joi.number().required(),
-    replayAvgRunTime: Joi.number().required(),
     publishedDate: Joi.date().required(),
   });
 
@@ -79,8 +75,6 @@ export const register = async (ctx) => {
     quizAvgRunTime,
     quizIncorrectNumber,
     quizTotalScore,
-    replayAvg,
-    replayAvgRunTime,
     publishedDate,
   } = ctx.request.body;
 
@@ -110,8 +104,6 @@ export const register = async (ctx) => {
       quizAvgRunTime,
       quizIncorrectNumber,
       quizTotalScore,
-      replayAvg,
-      replayAvgRunTime,
       publishedDate,
     });
 
@@ -132,7 +124,11 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    body[key] = { $regex: '.*' + body[key] + '.*' };
+    if (key == 'userId' || key == 'learningNo') {
+      body[key] = { $eq: body[key] };
+    } else {
+      body[key] = { $regex: '.*' + body[key] + '.*' };
+    }
   }
   const page = parseInt(ctx.query.page || '1', 10);
 
@@ -147,9 +143,57 @@ export const find = async (ctx) => {
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
-    const learningSetCount = await LearningResult.countDocuments(body).exec();
-    ctx.set('Last-Page', Math.ceil(learningSetCount / 10));
+    const learningResultCount = await LearningResult.countDocuments(
+      body,
+    ).exec();
+    ctx.set('Last-Page', Math.ceil(learningResultCount / 10));
     ctx.body = learningResults.map((learningResult) => learningResult.toJSON());
+  } catch (error) {
+    ctx.throw(500, error);
+  }
+};
+
+/*
+  PATCH /api/LearningResult/:_id
+  {
+    "replayAvg" : 20,
+    "replayAvgRunTime" : 30,
+    "replayPublishedDate" : new Date()
+  }
+*/
+export const update = async (ctx) => {
+  const { _id } = ctx.params;
+
+  const schema = Joi.object().keys({
+    replayAvg: Joi.number().required(),
+    replayAvgRunTime: Joi.number().required(),
+    replayPublishedDate: Joi.date().required(),
+  });
+
+  // 검증하고 나서 검증 실패인 경우 에러 처리
+  const result = schema.validate(ctx.request.body);
+  if (result.error) {
+    ctx.status = 400; // Bad Request
+    ctx.body = result.error;
+    return;
+  }
+
+  try {
+    const nextData = { ...ctx.request.body };
+
+    const updateContent = await LearningResult.findByIdAndUpdate(
+      _id,
+      nextData,
+      {
+        new: true, // 이 값을 설정하면 업데이트된 데이터를 반환합니다.
+        // false일 때는 업데이트되기 전의 데이터를 반환합니다.
+      },
+    ).exec();
+    if (!updateContent) {
+      ctx.status = 404;
+      return;
+    }
+    ctx.body = updateContent;
   } catch (error) {
     ctx.throw(500, error);
   }

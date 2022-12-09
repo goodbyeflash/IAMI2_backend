@@ -12,5 +12,6 @@ learningResult.post(
   learningResultCtrl.register,
 );
 learningResult.post('/find', checkLoggedIn, learningResultCtrl.find);
+learningResult.patch('/:_id', checkLoggedIn, learningResultCtrl.update);
 
 export default learningResult;

@@ -119,7 +119,11 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    body[key] = { $regex: '.*' + body[key] + '.*' };
+    if( key == "quizNo" ) {
+      body[key] = { $eq : body[key] };
+    } else {
+      body[key] = { $regex: '.*' + body[key] + '.*' };
+    }
   }
   const page = parseInt(ctx.query.page || '1', 10);
 

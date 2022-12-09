@@ -1,22 +1,53 @@
-//import Content from '../../models/content';
+import LearningResult from '../../models/learningResult';
+import moment from 'moment';
 import excel from 'exceljs';
 
 export const download = async (ctx) => {
-  const { columns, rows } = ctx.request.body;
+  let columns = [
+    { header: '회원아이디', key: 'userId', width: 25 },
+    { header: '학습세트넘버', key: 'learningNo', width: 25 },
+    { header: '학습시간', key: 'learningTime', width: 25 },
+    { header: '비디오시청시간', key: 'videoRunTime', width: 25 },
+    { header: '평균점수', key: 'quizAvg', width: 25 },
+    { header: '평균풀이시간', key: 'quizAvgRunTime', width: 25 },
+    { header: '틀린문제', key: 'quizIncorrectNumber', width: 25 },
+    { header: '총 점수', key: 'quizTotalScore', width: 25 },
+    { header: '리플레이 평균시간', key: 'replayAvg', width: 25 },
+    { header: '리플레이 풀이시간', key: 'replayAvgRunTime', width: 25 },
+    { header: '등록날짜', key: 'publishedDate', width: 25 },
+  ];
 
-  let rowArray = [];
-  rows.forEach((row) => {
-    row.publishedDate = new Date(row.publishedDate).YYYYMMDDHHMMSS();
-    rowArray.push(row);
-  });
+  const body = ctx.request.body || {};
 
-  let workbook = new excel.Workbook();
-  let worksheet = workbook.addWorksheet('Sheet1');
-  worksheet.columns = columns;
-  // Add Array Rows
-  worksheet.addRows(rowArray);
-  // res is a Stream object
+  const findData = {};
+
+  if (body.dateGte && body.dateLt) {
+    findData['publishedDate'] = {
+      $gte: moment(body.dateGte).startOf('day').format(),
+      $lt: moment(body.dateLt).endOf('day').format(),
+    };
+  }
+
+  let rows;
   try {
+    const learningResults = await LearningResult.find(findData)
+      .sort({ userId: -1 })
+      .exec();
+    rows = learningResults.map((learningResult) => learningResult.toJSON());
+
+    let rowArray = [];
+    rows.forEach((row) => {
+      row.publishedDate = new Date(row.publishedDate).YYYYMMDDHHMMSS();
+      rowArray.push(row);
+    });
+
+    let workbook = new excel.Workbook();
+    let worksheet = workbook.addWorksheet('Sheet1');
+    worksheet.columns = columns;
+    // Add Array Rows
+    worksheet.addRows(rowArray);
+    // res is a Stream object
+
     ctx.set(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -30,42 +61,12 @@ export const download = async (ctx) => {
   }
 };
 
-// export const sortContent = async (ctx) => {
-//   const { sortKey } = ctx.request.body;
-
-//   // key가 없으면 에러 처리
-//   if (!sortKey) {
-//     ctx.status = 401; // Unteacherorized
-//     return;
-//   }
-
-//   try {
-//     let contents = await Content.find({}).exec();
-//     contents = contents.map((content) => content.toJSON());
-//     contents.sort(arrOrder(sortKey));
-//   } catch (error) {
-//     ctx.throw(500, error);
-//   }
-// };
-
 function pad(number, length) {
   let str = '' + number;
   while (str.length < length) {
     str = '0' + str;
   }
   return str;
-}
-
-function arrOrder(key) {
-  return function (a, b) {
-    if (a[key] > b[key]) {
-      return 1;
-    } else if (a[key] < b[key]) {
-      return -1;
-    }
-
-    return 0;
-  };
 }
 
 Date.prototype.YYYYMMDDHHMMSS = function () {

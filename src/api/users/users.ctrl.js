@@ -66,7 +66,7 @@ export const list = async (ctx) => {
 export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    id: Joi.string().alphanum().min(3).max(20).required(),
+    id: Joi.string().required(),
     password: Joi.string().required(),
     name: Joi.string().required(),
     publishedDate: Joi.date().required(),
@@ -129,7 +129,11 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    body[key] = { $regex: '.*' + body[key] + '.*' };
+    if( key == "id" ) {
+      body[key] = { $eq : body[key] };
+    } else {
+      body[key] = { $regex: '.*' + body[key] + '.*' };
+    }
   }
   const page = parseInt(ctx.query.page || '1', 10);
 
