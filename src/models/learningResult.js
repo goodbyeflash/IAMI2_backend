@@ -7,7 +7,7 @@ const learningResultSchema = new Schema({
   videoRunTime: Number,
   quizAvg: Number,
   quizAvgRunTime: Number,
-  quizIncorrectNumber: String,
+  quizIncorrectQuizNo: Array,
   quizTotalScore: Number,
   publishedDate: Date,
   replayAvg: Number,

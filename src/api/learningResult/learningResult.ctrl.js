@@ -32,6 +32,24 @@ export const list = async (ctx) => {
 };
 
 /*
+  GET /api/learningResult/find/:_id
+*/
+export const findUser = async (ctx) => {
+  const { _id } = ctx.params;
+
+  try {
+    const learningResults = await LearningResult.findById(_id).exec();
+    if (!learningResults) {
+      ctx.status = 404;
+      return;
+    }
+    ctx.body = learningResults;
+  } catch (error) {
+    ctx.throw(500, error);
+  }
+};
+
+/*
   POST /api/learningResult/register
   {
     "userId" : "test1",
@@ -40,7 +58,7 @@ export const list = async (ctx) => {
     "videoRunTime" : 30,
     "quizAvg" : 77.3,
     "quizAvgRunTime" : 78,
-    "quizIncorrectNumber" : "2,4,7,10,15",
+    "quizIncorrectQuizNo" : "2,4,7,10,15",
     "quizTotalScore" : 2340,
     "publishedDate" : new Date()
   }
@@ -54,7 +72,7 @@ export const register = async (ctx) => {
     videoRunTime: Joi.number().required(),
     quizAvg: Joi.number().required(),
     quizAvgRunTime: Joi.number().required(),
-    quizIncorrectNumber: Joi.string().required(),
+    quizIncorrectQuizNo: Joi.array().required(),
     quizTotalScore: Joi.number().required(),
     publishedDate: Joi.date().required(),
   });
@@ -73,7 +91,7 @@ export const register = async (ctx) => {
     videoRunTime,
     quizAvg,
     quizAvgRunTime,
-    quizIncorrectNumber,
+    quizIncorrectQuizNo,
     quizTotalScore,
     publishedDate,
   } = ctx.request.body;
@@ -102,7 +120,7 @@ export const register = async (ctx) => {
       videoRunTime,
       quizAvg,
       quizAvgRunTime,
-      quizIncorrectNumber,
+      quizIncorrectQuizNo,
       quizTotalScore,
       publishedDate,
     });
@@ -124,7 +142,7 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    if (key == 'userId' || key == 'learningNo') {
+    if (key == 'userId' || key == 'learningNo' || key == '_id') {
       body[key] = { $eq: body[key] };
     } else {
       body[key] = { $regex: '.*' + body[key] + '.*' };

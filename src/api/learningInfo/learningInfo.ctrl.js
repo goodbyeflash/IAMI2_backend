@@ -122,6 +122,54 @@ export const register = async (ctx) => {
 };
 
 /*
+  PATCH /api/learningInfo/user/:_id
+  {    
+    "learningData": [
+        {
+            "learningNo": "1",
+            "complete": "Y"
+        },
+        {
+            "learningNo": "2",
+            "complete": "N"
+        }
+    ],
+    "publishedDate" : new Date()
+  }
+*/
+export const updateUser = async (ctx) => {
+  const { _id } = ctx.params;
+
+  const schema = Joi.object().keys({
+    learningData: Joi.array().required(),
+  });
+
+  // 검증하고 나서 검증 실패인 경우 에러 처리
+  const result = schema.validate(ctx.request.body);
+  if (result.error) {
+    ctx.status = 400; // Bad Request
+    ctx.body = result.error;
+    return;
+  }
+
+  try {
+    const nextData = { ...ctx.request.body };
+
+    const updateContent = await LearningInfo.findByIdAndUpdate(_id, nextData, {
+      new: true, // 이 값을 설정하면 업데이트된 데이터를 반환합니다.
+      // false일 때는 업데이트되기 전의 데이터를 반환합니다.
+    }).exec();
+    if (!updateContent) {
+      ctx.status = 404;
+      return;
+    }
+    ctx.body = updateContent;
+  } catch (error) {
+    ctx.throw(500, error);
+  }
+};
+
+/*
   PATCH /api/learningInfo/:_id
   {
     "learningTime" : "10:30~23:59",
@@ -188,8 +236,8 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    if( key == "userId" ) {
-      body[key] = { $eq : body[key] };
+    if (key == 'userId') {
+      body[key] = { $eq: body[key] };
     } else {
       body[key] = { $regex: '.*' + body[key] + '.*' };
     }

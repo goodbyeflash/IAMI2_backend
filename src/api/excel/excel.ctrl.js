@@ -10,7 +10,7 @@ export const download = async (ctx) => {
     { header: '비디오시청시간', key: 'videoRunTime', width: 25 },
     { header: '평균점수', key: 'quizAvg', width: 25 },
     { header: '평균풀이시간', key: 'quizAvgRunTime', width: 25 },
-    { header: '틀린문제', key: 'quizIncorrectNumber', width: 25 },
+    { header: '틀린문제', key: 'quizIncorrectQuizNo', width: 25 },
     { header: '총 점수', key: 'quizTotalScore', width: 25 },
     { header: '리플레이 평균시간', key: 'replayAvg', width: 25 },
     { header: '리플레이 풀이시간', key: 'replayAvgRunTime', width: 25 },

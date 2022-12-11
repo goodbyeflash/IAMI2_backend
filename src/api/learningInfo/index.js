@@ -10,6 +10,11 @@ learningInfo.get('/:_id', checkLoggedIn, learningInfoCtrl.read);
 learningInfo.post('/register', checkLoggedIn, learningInfoCtrl.register);
 learningInfo.post('/find', checkLoggedIn, learningInfoCtrl.find);
 learningInfo.post('/today', checkLoggedInUser, learningInfoCtrl.today);
+learningInfo.patch(
+  '/user/:_id',
+  checkLoggedInUser,
+  learningInfoCtrl.updateUser,
+);
 learningInfo.patch('/:_id', checkLoggedIn, learningInfoCtrl.update);
 learningInfo.delete('/:_id', checkLoggedIn, learningInfoCtrl.remove);
 

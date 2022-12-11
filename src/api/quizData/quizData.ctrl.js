@@ -19,7 +19,7 @@ export const list = async (ctx) => {
 
   try {
     const quizDatas = await QuizData.find({})
-      .sort({ _id: -1 })
+      .sort({ quizNo: -1 })
       .limit(10)
       .skip((page - 1) * 10)
       .exec();
@@ -119,8 +119,8 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    if( key == "quizNo" ) {
-      body[key] = { $eq : body[key] };
+    if (key == 'quizNo') {
+      body[key] = { $eq: body[key] };
     } else {
       body[key] = { $regex: '.*' + body[key] + '.*' };
     }
