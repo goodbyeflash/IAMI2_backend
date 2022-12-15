@@ -28,7 +28,7 @@ export const getTeacherById = async (ctx, next) => {
   POST /api/teachers/register
   {
       "id" : "kim",
-      "password" : "kim123",
+      "password" : "",
       "name" : "김교사",
       "publishedDate" : new Date(),
   }
@@ -83,7 +83,7 @@ export const register = async (ctx) => {
     POST /api/teachers/login
     {
         "id" : "kim",
-        "password" : "kim123"
+        "password" : ""
     }
 */
 export const login = async (ctx) => {

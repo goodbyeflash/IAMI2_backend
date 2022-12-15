@@ -36,8 +36,8 @@ app.use(async (ctx, next) => {
   const corsWhitelist = [
     'http://localhost:8080',
     'http://localhost:5500',
-    'http://www.publicdesign.co.kr',
-    'http://2c47-1-231-219-209.ngrok.io/',
+    'http://192.168.0.7:8080',
+    'http://2xmath.xyz/',
   ];
   if (corsWhitelist.indexOf(ctx.request.headers.origin) !== -1) {
     ctx.set('Access-Control-Allow-Origin', ctx.request.headers.origin);

@@ -58,7 +58,7 @@ export const list = async (ctx) => {
   POST /api/users
   {
     "id" : "test",
-    "password" : "test",
+    "password" : "",
     "name" : "홍길동",
     "publishedDate" : new Date()
   }
@@ -129,8 +129,8 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    if( key == "id" ) {
-      body[key] = { $eq : body[key] };
+    if (key == 'id') {
+      body[key] = { $eq: body[key] };
     } else {
       body[key] = { $regex: '.*' + body[key] + '.*' };
     }
@@ -160,7 +160,7 @@ export const find = async (ctx) => {
     POST /api/users/login
     {
         "id" : "test",
-        "password" : "test"
+        "password" : ""
     }
 */
 export const login = async (ctx) => {
@@ -256,13 +256,13 @@ export const update = async (ctx) => {
   const { password } = ctx.request.body;
 
   try {
-    const teacher = new User({
+    const admin = new User({
       password,
     });
 
     const nextData = { ...ctx.request.body }; // 객체를 복사하고 body 값이 주어졌으면 HTML 필터링
     if (nextData.password) {
-      nextData.hashedPassword = await teacher.setPassword(password);
+      nextData.hashedPassword = await admin.setPassword(password);
       delete nextData.password;
     }
 
