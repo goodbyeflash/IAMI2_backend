@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 const learningSetchema = new Schema({
-  learningNo: String,
+  learningNo: Number,
   videoName: String,
   videoUrl: String,
   quizNo: Array,

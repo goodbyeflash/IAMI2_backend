@@ -56,7 +56,7 @@ export const read = async (ctx) => {
 /*
   POST /api/learningSet/register
   {
-    "learningNo" : "1",
+    "learningNo" : 1,
     "videoName" : "비디오이름",
     "videoUrl" : "비디오링크",
     "quizNo" : ["1","2","3"],
@@ -66,7 +66,7 @@ export const read = async (ctx) => {
 export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    learningNo: Joi.string().required(), // required()가 있으면 필수 항목
+    learningNo: Joi.number().required(), // required()가 있으면 필수 항목
     videoName: Joi.string().required(),
     videoUrl: Joi.string().required(),
     quizNo: Joi.array().required(),
@@ -111,7 +111,7 @@ export const register = async (ctx) => {
 /*
   PATCH /api/learningSet/:_id
   { 
-    "learningNo" : "1",
+    "learningNo" : 1,
     "videoName" : "비디오이름",
     "videoUrl" : "비디오링크",
     "quizNo" : ["1","2"],
@@ -122,7 +122,7 @@ export const update = async (ctx) => {
   const { _id } = ctx.params;
 
   const schema = Joi.object().keys({
-    learningNo: Joi.string().required(),
+    learningNo: Joi.number().required(),
     videoName: Joi.string(),
     videoUrl: Joi.string(),
     quizNo: Joi.array(),
@@ -157,7 +157,7 @@ export const update = async (ctx) => {
 /*
   POST /api/learningSet/find?page=
   {
-    "learningNo" : "1"
+    "learningNo" : 1
   }
 */
 export const find = async (ctx) => {
@@ -194,13 +194,13 @@ export const find = async (ctx) => {
 /*
   POST /api/learningSet/select
   {
-    "learningNo" : "2"
+    "learningNo" : 2
   }
 */
 export const select = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    learningNo: Joi.string().required(), // required()가 있으면 필수 항목
+    learningNo: Joi.number().required(), // required()가 있으면 필수 항목
   });
 
   // 검증하고 나서 검증 실패인 경우 에러 처리

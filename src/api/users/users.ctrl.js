@@ -57,7 +57,7 @@ export const list = async (ctx) => {
 /*
   POST /api/users
   {
-    "id" : "test",
+    "id" : 1,
     "password" : "",
     "name" : "홍길동",
     "publishedDate" : new Date()
@@ -66,7 +66,7 @@ export const list = async (ctx) => {
 export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    id: Joi.string().required(),
+    id: Joi.number().required(),
     password: Joi.string().required(),
     name: Joi.string().required(),
     publishedDate: Joi.date().required(),
@@ -159,7 +159,7 @@ export const find = async (ctx) => {
 /*
     POST /api/users/login
     {
-        "id" : "test",
+        "id" : 1,
         "password" : ""
     }
 */
@@ -205,6 +205,19 @@ export const check = async (ctx) => {
     // 로그인 중 아님
     ctx.status = 401; // Unteacherorized
     return;
+  }
+  // token이 있는데 DB에 계정이 없을 경우
+  else {
+    try {
+      const user = await User.findByid(ctx.state.user.id);
+      // 계정이 존재하지 않으면 에러 처리
+      if (!user) {
+        ctx.status = 401;
+        return;
+      }
+    } catch (e) {
+      ctx.throw(500, e);
+    }
   }
   ctx.body = user;
 };

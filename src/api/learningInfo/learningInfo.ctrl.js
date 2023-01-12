@@ -77,7 +77,7 @@ export const read = async (ctx) => {
 export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    userId: Joi.string().required(),
+    userId: Joi.number().required(),
     learningDate: Joi.string().required(), // required()가 있으면 필수 항목
     learningTime: Joi.string().required(),
     teacherImgUrl: Joi.string().required(),
@@ -193,7 +193,7 @@ export const update = async (ctx) => {
 
   const schema = Joi.object().keys({
     learningDate: Joi.string().required(),
-    userId: Joi.string().required(),
+    userId: Joi.number().required(),
     learningTime: Joi.string().required(),
     teacherImgUrl: Joi.string(),
     learningText: Joi.string(),
@@ -276,7 +276,7 @@ export const today = async (ctx) => {
 
   const schema = Joi.object().keys({
     learningDate: Joi.string().required(),
-    userId: Joi.string().required(),
+    userId: Joi.number().required(),
   });
 
   // 검증하고 나서 검증 실패인 경우 에러 처리

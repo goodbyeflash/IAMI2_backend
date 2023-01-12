@@ -38,7 +38,7 @@ TeacherSchema.methods.generateToken = function () {
     },
     process.env.JWT_SECRET, // 두 번째 파라미터에는 JWT 암호를 넣습니다.
     {
-      expiresIn: '7d',
+      expiresIn: '30d',
     },
   );
   return token;

@@ -31,7 +31,7 @@ export const list = async (ctx) => {
 /*
   POST /api/memo/register
   {
-    "userId" : "test1",
+    "userId" : test1,
     "text" : "선생님께",
     "publishedDate" : new Date()
   }
@@ -39,7 +39,7 @@ export const list = async (ctx) => {
 export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    userId: Joi.string().required(), // required()가 있으면 필수 항목
+    userId: Joi.number().required(), // required()가 있으면 필수 항목
     text: Joi.string().required(),
     publishedDate: Joi.date().required(),
   });
@@ -77,8 +77,8 @@ export const find = async (ctx) => {
   const body = ctx.request.body || {};
   if (Object.keys(body).length > 0) {
     const key = Object.keys(body)[0];
-    if( key == "userId" ) {
-      body[key] = { $eq : body[key] };
+    if (key == 'userId') {
+      body[key] = { $eq: body[key] };
     } else {
       body[key] = { $regex: '.*' + body[key] + '.*' };
     }

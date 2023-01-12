@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 const quizDataSchema = new Schema({
-  quizNo: String,
+  quizNo: Number,
   text: String,
   question: String,
   answer: String,

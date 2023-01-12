@@ -5,6 +5,8 @@ const learningResultSchema = new Schema({
   learningNo: String,
   learningTime: Number,
   videoRunTime: Number,
+  videoPercentage: Number,
+  videoComplete: String,
   quizAvg: Number,
   quizAvgRunTime: Number,
   quizIncorrectQuizNo: Array,

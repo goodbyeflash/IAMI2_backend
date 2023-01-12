@@ -8,6 +8,8 @@ export const download = async (ctx) => {
     { header: '학습세트넘버', key: 'learningNo', width: 25 },
     { header: '학습시간', key: 'learningTime', width: 25 },
     { header: '비디오시청시간', key: 'videoRunTime', width: 25 },
+    { header: '비디오시청비율', key: 'videoPercentage', width: 25 },
+    { header: '비디오시청완료', key: 'videoComplete', width: 25 },
     { header: '평균점수', key: 'quizAvg', width: 25 },
     { header: '평균풀이시간', key: 'quizAvgRunTime', width: 25 },
     { header: '틀린퀴즈넘버', key: 'quizIncorrectQuizNo', width: 25 },
@@ -40,6 +42,7 @@ export const download = async (ctx) => {
     rows.forEach((row) => {
       row.learningTime = padText(Math.round(row.learningTime.toFixed(1)));
       row.videoRunTime = padText(Math.round(row.videoRunTime.toFixed(1)));
+      row.videoPercentage = `${row.videoPercentage && Math.round(row.videoPercentage.toFixed(1))}%`;
       row.quizAvg = `${Math.ceil(row.quizAvg)}점`;
       row.quizAvgRunTime = `${row.quizAvgRunTime.toFixed(1)}초`;
       row.quizIncorrectQuizNo = row.quizIncorrectQuizNo.join();
@@ -88,7 +91,7 @@ Date.prototype.YYYYMMDDHHMMSS = function () {
   let yyyy = this.getFullYear().toString();
   let MM = pad(this.getMonth() + 1, 2);
   let dd = pad(this.getDate(), 2);
-  let hh = pad(this.getHours(), 2);
+  let hh = pad(this.getHours() + 9, 2);
   let mm = pad(this.getMinutes(), 2);
   let ss = pad(this.getSeconds(), 2);
 

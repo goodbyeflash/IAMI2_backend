@@ -56,7 +56,7 @@ export const read = async (ctx) => {
 /*
   POST /api/quizData/register
   {
-    "quizNo" : "1",
+    "quizNo" : 1,
     "text" : "1번 문제 입니다.",
     "question" : "1+1=?",
     "answer" : "2",
@@ -67,7 +67,7 @@ export const read = async (ctx) => {
 export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    quizNo: Joi.string().required(), // required()가 있으면 필수 항목
+    quizNo: Joi.number().required(), // required()가 있으면 필수 항목
     text: Joi.string().required(),
     question: Joi.string().required(),
     answer: Joi.string().required(),
@@ -112,7 +112,7 @@ export const register = async (ctx) => {
 /*
   POST /api/quizData/find?page=
   {
-    "quizNo" : "2"
+    "quizNo" : 2
   }
 */
 export const find = async (ctx) => {
@@ -149,7 +149,7 @@ export const find = async (ctx) => {
 /*
   PATCH /api/quizData/:_id
   {
-    "quizNo" : "1",
+    "quizNo" : 1,
     "text" : "1번 문제 입니다.",
     "question" : "1+1=?",
     "answer" : "2",
@@ -160,7 +160,7 @@ export const update = async (ctx) => {
   const { _id } = ctx.params;
 
   const schema = Joi.object().keys({
-    quizNo: Joi.string().required(),
+    quizNo: Joi.number().required(),
     text: Joi.string(),
     question: Joi.string(),
     answer: Joi.string(),

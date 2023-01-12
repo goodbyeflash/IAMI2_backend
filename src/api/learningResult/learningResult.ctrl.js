@@ -56,6 +56,8 @@ export const findUser = async (ctx) => {
     "learningNo" : "1",
     "learningTime" : 20,
     "videoRunTime" : 30,
+    "videoPercentage" : 30,
+    "videoComplete" : "N",
     "quizAvg" : 77.3,
     "quizAvgRunTime" : 78,
     "quizIncorrectQuizNo" : "2,4,7,10,15",
@@ -66,10 +68,12 @@ export const findUser = async (ctx) => {
 export const register = async (ctx) => {
   const schema = Joi.object().keys({
     // 객체가 다음 필드를 가지고 있음을 검증
-    userId: Joi.string().required(), // required()가 있으면 필수 항목
+    userId: Joi.number().required(), // required()가 있으면 필수 항목
     learningNo: Joi.string().required(),
     learningTime: Joi.number().required(),
     videoRunTime: Joi.number().required(),
+    videoPercentage: Joi.number().required(),
+    videoComplete: Joi.string().required(),
     quizAvg: Joi.number().required(),
     quizAvgRunTime: Joi.number().required(),
     quizIncorrectQuizNo: Joi.array().required(),
@@ -89,6 +93,8 @@ export const register = async (ctx) => {
     learningNo,
     learningTime,
     videoRunTime,
+    videoPercentage,
+    videoComplete,
     quizAvg,
     quizAvgRunTime,
     quizIncorrectQuizNo,
@@ -118,6 +124,8 @@ export const register = async (ctx) => {
       learningNo,
       learningTime,
       videoRunTime,
+      videoPercentage,
+      videoComplete,
       quizAvg,
       quizAvgRunTime,
       quizIncorrectQuizNo,
